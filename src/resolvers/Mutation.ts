@@ -10,8 +10,7 @@ export const Mutation = {
     const user = await prisma.user.findUnique({
       where: { id: input.userId },
     });
-    if (!user)
-      throw new NotFoundException(`User with id ${input.userId} not found`);
+    if (!user) throw new Error(`User with id ${input.userId} not found`);
 
     if (input.skillIds && input.skillIds.length > 0) {
       const skills = await prisma.skill.findMany({
