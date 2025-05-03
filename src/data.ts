@@ -57,4 +57,3 @@ export const users = [
     { id: 24, name: "Farah CV 8", age: 24, job: "Design Systems Lead", userId: 3, skillIds: [4, 2] },
     { id: 25, name: "Lina CV 9", age: 30, job: "Innovation Engineer", userId: 1, skillIds: [2, 5] }
   ];
-  

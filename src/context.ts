@@ -13,7 +13,7 @@ export const pubSub = createPubSub<Events>();
 
 export interface Context {
   users: typeof users;
-  skills: typeof skills;
+  skills: typeof skills ;
   cvs: typeof cvs;
 
   pubSub: typeof pubSub;

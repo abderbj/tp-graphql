@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import path from "path";
+const path = require('path');
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { Query } from "./resolvers/Query";
 import { Mutation } from "./resolvers/Mutation";
