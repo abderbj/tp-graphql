@@ -1,9 +1,13 @@
-import { Context } from "../context";
+import { Context } from '../context';
 
 export const Query = {
-  cvs: (_parent: any, _args: any, { cvs }: Context) => cvs,
-  
-  cv: (_parent: any, { id }: { id: string }, { cvs }: Context) =>
-    cvs.find(cv => cv.id === +id),
+  cvs: async (_parent: any, _args: any, { prisma }: Context) => {
+    return prisma.cv.findMany();
+  },
 
+  cv: async (_parent: any, { id }: { id: string }, { prisma }: Context) => {
+    return prisma.cv.findUnique({
+      where: { id: Number(id) },
+    });
+  },
 };
