@@ -1,85 +1,61 @@
 import { PrismaClient } from '@prisma/client';
+import { users, skills, cvs } from '../src/data';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const python = await prisma.skill.create({ data: { designation: 'Python' } });
-  const graphql = await prisma.skill.create({
-    data: { designation: 'GraphQL' },
-  });
-  const react = await prisma.skill.create({ data: { designation: 'React' } });
-  const node = await prisma.skill.create({ data: { designation: 'Node' } });
-  const docker = await prisma.skill.create({ data: { designation: 'Docker' } });
-  const typescript = await prisma.skill.create({
-    data: { designation: 'Typescript' },
-  });
+  // Seed skills first
+  const createdSkills = await Promise.all(
+    skills.map((skill) =>
+      prisma.skill.create({
+        data: {
+          designation: skill.designation,
+        },
+      }),
+    ),
+  );
 
-  const gritli = await prisma.user.create({
-    data: {
-      name: 'Gritli',
-      email: 'gritli@gmail.com',
-      role: 'ADMIN',
-    },
+  // Create a map of original skill ID to Prisma-generated ID
+  const skillIdMap = new Map<number, number>();
+  skills.forEach((skill, index) => {
+    skillIdMap.set(skill.id, createdSkills[index].id);
   });
 
-  const abder = await prisma.user.create({
-    data: {
-      name: 'abder',
-      email: 'abder@gmail.com',
-      role: 'USER',
-    },
+  // Seed users
+  const createdUsers = await Promise.all(
+    users.map((user) =>
+      prisma.user.create({
+        data: {
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      }),
+    ),
+  );
+
+  // Create a map of original user ID to Prisma-generated ID
+  const userIdMap = new Map<number, number>();
+  users.forEach((user, index) => {
+    userIdMap.set(user.id, createdUsers[index].id);
   });
 
-  await prisma.cv.create({
-    data: {
-      name: 'Gritli CV',
-      age: 40,
-      job: 'Full Stack Developer',
-      userId: gritli.id,
-      skills: {
-        connect: [{ id: docker.id }, { id: graphql.id }, { id: react.id }],
-      },
-    },
-  });
+  // Seed CVs with proper skill connections
+  for (const cv of cvs) {
+    const skillConnections = cv.skillIds.map((skillId) => ({
+      id: skillIdMap.get(skillId)!,
+    }));
 
-  await prisma.cv.createMany({
-    data: [
-      {
-        name: 'Abder CV',
-        age: 30,
-        job: 'Full Stack Developer',
-        userId: abder.id,
-      },
-      {
-        name: 'Abder CV v2',
-        age: 30,
-        job: 'Cloud Architect',
-        userId: abder.id,
-      },
-    ],
-  });
-
-  const cvList: { name: string; age: number; job: string; userId: number }[] =
-    [];
-  for (let i = 0; i < 10; i++) {
-    cvList.push({
-      name: 'Gritli CV',
-      age: 40,
-      job: 'ML Engineer',
-      userId: gritli.id,
-    });
-  }
-
-  await prisma.cv.createMany({ data: cvList });
-
-  // Connect skills to the bulk CVs
-  const allCvs = await prisma.cv.findMany({ where: { userId: gritli.id } });
-  for (const cv of allCvs) {
-    await prisma.cv.update({
-      where: { id: cv.id },
+    await prisma.cv.create({
       data: {
+        name: cv.name,
+        age: cv.age,
+        job: cv.job,
+        user: {
+          connect: { id: userIdMap.get(cv.userId)! },
+        },
         skills: {
-          connect: [{ id: python.id }, { id: node.id }, { id: typescript.id }],
+          connect: skillConnections,
         },
       },
     });
